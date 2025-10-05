@@ -1,0 +1,43 @@
+spring:
+  application.name: RecipeFinder
+  ai:
+    # Define AI provider(s) for type of models for autoconfiguration
+    model:
+      chat: ollama
+      embedding: ollama
+      image: none
+      audio:
+        speech: none
+        transcription: none
+      moderation: none
+    # AI provider configuration
+    ollama:
+      chat:
+        model: llama3.2
+        options.temperature: 0.5
+      embedding.model: llama3.2
+    vectorstore.redis.initialize-schema: true
+
+    # Logging
+    chat.client.observations:
+      log-prompt: true
+      log-completion: true
+      include-error-logging: true
+    image.observations.log-prompt: true
+    vectorstore.observations.log-query-response: true
+
+# Required for PDF upload
+  servlet.multipart:
+    max-file-size: 100MB
+    max-request-size: 100MB
+server.tomcat.max-swallow-size: -1
+
+# VectorStore configuration
+spring.data.redis:
+  host: localhost
+  port: 6379
+  username:
+  password:
+
+app:
+  available-ingredients-in-fridge: bacon,onions

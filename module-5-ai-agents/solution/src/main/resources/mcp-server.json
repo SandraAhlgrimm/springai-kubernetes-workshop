@@ -1,0 +1,301 @@
+{
+  "name": "recipe-finder-mcp",
+  "version": "1.0.0",
+  "description": "AI-powered recipe discovery, meal planning, and nutritional analysis via Model Context Protocol",
+  "author": "Devoxx Belgium 2025 Workshop",
+  "homepage": "https://github.com/your-org/springai-kubernetes-workshop",
+  "license": "Apache-2.0",
+  
+  "server": {
+    "url": "http://localhost:8080/mcp",
+    "type": "http"
+  },
+  
+  "capabilities": {
+    "tools": true,
+    "prompts": true,
+    "resources": false
+  },
+  
+  "tools": [
+    {
+      "name": "search_recipes",
+      "description": "Search for recipes by ingredients, cuisine, dietary restrictions, or cooking techniques. Returns a list of matching recipes with basic information.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language search query (e.g., 'pasta with tomatoes and basil', 'quick vegan dinner')"
+          },
+          "cuisine": {
+            "type": "string",
+            "description": "Filter by cuisine type (e.g., 'Italian', 'Mexican', 'Japanese', 'Indian')"
+          },
+          "dietary": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["vegetarian", "vegan", "gluten-free", "dairy-free", "nut-free", "low-carb", "keto", "paleo"]
+            },
+            "description": "List of dietary restrictions that must be met"
+          },
+          "maxPrepTime": {
+            "type": "integer",
+            "description": "Maximum preparation time in minutes",
+            "minimum": 5,
+            "maximum": 480
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard", "expert"],
+            "description": "Recipe difficulty level"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of results to return",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "get_recipe_details",
+      "description": "Get complete details for a specific recipe including full ingredient list with measurements, step-by-step instructions, timing, and nutritional information.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "recipeId": {
+            "type": "string",
+            "description": "Unique identifier of the recipe"
+          },
+          "servings": {
+            "type": "integer",
+            "description": "Adjust quantities for this number of servings",
+            "minimum": 1,
+            "maximum": 24
+          }
+        },
+        "required": ["recipeId"]
+      }
+    },
+    {
+      "name": "analyze_nutrition",
+      "description": "Get detailed nutritional analysis for a recipe including calories, macronutrients, vitamins, and minerals per serving.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "recipeId": {
+            "type": "string",
+            "description": "Recipe identifier"
+          },
+          "servings": {
+            "type": "integer",
+            "description": "Calculate nutrition per this many servings",
+            "default": 1
+          }
+        },
+        "required": ["recipeId"]
+      }
+    },
+    {
+      "name": "generate_shopping_list",
+      "description": "Create an organized shopping list from one or more recipes, consolidating duplicate ingredients and organizing by category.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "recipeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of recipe IDs to include",
+            "minItems": 1
+          },
+          "servings": {
+            "type": "integer",
+            "description": "Servings per recipe",
+            "default": 4
+          },
+          "pantryItems": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Items already in pantry to exclude from list"
+          }
+        },
+        "required": ["recipeIds"]
+      }
+    },
+    {
+      "name": "check_ingredient_substitutes",
+      "description": "Find suitable alternatives for a specific ingredient, considering dietary restrictions, allergies, or availability.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ingredient": {
+            "type": "string",
+            "description": "Ingredient to find substitutes for"
+          },
+          "reason": {
+            "type": "string",
+            "enum": ["allergy", "dietary-restriction", "preference", "availability"],
+            "description": "Reason for substitution"
+          },
+          "context": {
+            "type": "string",
+            "description": "Recipe context (e.g., 'baking bread', 'making soup') for better suggestions"
+          }
+        },
+        "required": ["ingredient"]
+      }
+    },
+    {
+      "name": "plan_meals",
+      "description": "Generate a meal plan for a specified time period based on dietary preferences, available ingredients, and nutritional goals.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "description": "Number of days to plan for",
+            "minimum": 1,
+            "maximum": 14
+          },
+          "mealsPerDay": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["breakfast", "lunch", "dinner", "snack"]
+            },
+            "description": "Which meals to include each day"
+          },
+          "dietary": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Dietary restrictions"
+          },
+          "calorieTarget": {
+            "type": "integer",
+            "description": "Target calories per day"
+          },
+          "cuisinePreferences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Preferred cuisine types"
+          }
+        },
+        "required": ["days"]
+      }
+    }
+  ],
+  
+  "prompts": [
+    {
+      "name": "recipe_critic",
+      "description": "Professional recipe review with constructive feedback on techniques, proportions, and improvements. Provides expert-level analysis from a culinary perspective.",
+      "arguments": {
+        "recipe_text": {
+          "type": "string",
+          "description": "The complete recipe text to review including ingredients and instructions",
+          "required": true
+        },
+        "focus_areas": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["technique", "flavor-balance", "presentation", "efficiency", "authenticity"]
+          },
+          "description": "Specific aspects to focus the review on"
+        }
+      }
+    },
+    {
+      "name": "meal_planner",
+      "description": "Generate a comprehensive weekly meal plan balancing nutrition, variety, and preferences. Includes shopping list and prep schedule.",
+      "arguments": {
+        "dietary_restrictions": {
+          "type": "string",
+          "description": "Dietary restrictions (e.g., 'vegan', 'gluten-free, dairy-free')"
+        },
+        "cuisine_preferences": {
+          "type": "string",
+          "description": "Preferred cuisine styles (e.g., 'Mediterranean, Asian')"
+        },
+        "servings": {
+          "type": "integer",
+          "description": "Number of people to serve",
+          "default": 4
+        },
+        "budget": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "description": "Budget level for ingredients"
+        },
+        "cooking_time_available": {
+          "type": "string",
+          "description": "Average time available for cooking each day (e.g., '30 minutes', '1 hour')"
+        }
+      }
+    },
+    {
+      "name": "cooking_instructor",
+      "description": "Step-by-step cooking guidance with detailed explanations of techniques, timing cues, and professional tips. Helps users understand the 'why' behind each step.",
+      "arguments": {
+        "recipe_name": {
+          "type": "string",
+          "description": "Name of the recipe to get guidance for",
+          "required": true
+        },
+        "skill_level": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"],
+          "description": "Cook's skill level to tailor explanations",
+          "default": "intermediate"
+        },
+        "specific_step": {
+          "type": "integer",
+          "description": "Focus on a specific step number if guidance needed for particular technique"
+        }
+      }
+    },
+    {
+      "name": "ingredient_expert",
+      "description": "In-depth information about ingredients including selection tips, storage, nutritional benefits, and usage recommendations.",
+      "arguments": {
+        "ingredient": {
+          "type": "string",
+          "description": "Ingredient to learn about",
+          "required": true
+        },
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["selection", "storage", "nutrition", "preparation", "substitutes", "pairings"]
+          },
+          "description": "Specific topics to cover"
+        }
+      }
+    }
+  ],
+  
+  "configuration": {
+    "auth": {
+      "type": "none",
+      "note": "For production, implement API key or OAuth authentication"
+    },
+    "rate_limits": {
+      "requests_per_minute": 60,
+      "burst": 10
+    }
+  }
+}

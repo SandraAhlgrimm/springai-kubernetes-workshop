@@ -1,0 +1,87 @@
+spring:
+  ai:
+    vectorstore:
+      redis:
+        # Use FLAT index for exact (brute-force) search
+        # FLAT is simpler and guarantees exact results
+        # Best for small to medium datasets (< 10K-50K vectors)
+        index-type: FLAT
+        
+        # Vector embedding configuration
+        embedding-dimension: 1536  # For OpenAI text-embedding-3-small
+        
+        # Distance metric
+        # COSINE: Best for normalized embeddings
+        # L2: Euclidean distance  
+        # IP: Inner product
+        distance-metric: COSINE
+        
+        # Automatically create/update Redis schema
+        initialize-schema: true
+        
+        # Index name
+        index-name: recipe-flat-index
+        
+  # Redis connection
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+      
+      # Connection pooling
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: 2s
+
+# FLAT vs HNSW comparison:
+#
+# FLAT Index:
+# ✅ Exact results (100% recall)
+# ✅ Simpler configuration
+# ✅ Lower memory overhead
+# ✅ Better for small datasets
+# ❌ Slower for large datasets (O(n) search)
+# ❌ Linear scaling with dataset size
+#
+# HNSW Index:
+# ✅ Fast approximate search (O(log n))
+# ✅ Scales to millions of vectors
+# ✅ Tunable accuracy/speed tradeoff
+# ❌ Approximate results (~95-99% recall)
+# ❌ More complex configuration
+# ❌ Higher memory usage
+#
+# Use FLAT when:
+# - Dataset < 50K vectors
+# - Need exact results
+# - Simple setup preferred
+# - Memory constrained
+#
+# Use HNSW when:
+# - Dataset > 50K vectors
+# - Speed is critical
+# - Slight approximation acceptable
+# - Have sufficient memory
+#
+# Performance comparison (100K vectors, 1536 dims):
+# 
+# Search Time:
+# - FLAT: ~100-200ms (searches all vectors)
+# - HNSW: ~1-5ms (navigates graph structure)
+#
+# Index Build Time:
+# - FLAT: Instant (no index structure)
+# - HNSW: Minutes (builds graph)
+#
+# Memory Usage:
+# - FLAT: ~600 MB (just vectors)
+# - HNSW: ~2 GB (vectors + graph)
+#
+# Recall:
+# - FLAT: 100% (exact)
+# - HNSW: 95-99% (approximate)

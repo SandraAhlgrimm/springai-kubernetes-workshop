@@ -1,0 +1,90 @@
+spring:
+  ai:
+    vectorstore:
+      redis:
+        # Use HNSW (Hierarchical Navigable Small World) for large datasets
+        # HNSW provides approximate nearest neighbor search with excellent speed/accuracy tradeoff
+        index-type: HNSW
+        
+        # HNSW algorithm parameters
+        hnsw:
+          # M: Maximum number of connections per node (default: 16)
+          # Higher values = better recall, more memory usage
+          # Recommended: 16-64 depending on dimensionality
+          m: 16
+          
+          # EF Construction: Quality of index construction (default: 200)
+          # Higher values = better index quality, slower build time
+          # Recommended: 100-500
+          ef-construction: 200
+          
+          # EF Runtime: Quality of search (default: 10)
+          # Higher values = better recall, slower search
+          # Recommended: 10-100
+          # Note: Can be overridden per query
+          ef-runtime: 10
+        
+        # Vector embedding configuration
+        # Must match your embedding model's dimensions
+        embedding-dimension: 1536  # For OpenAI text-embedding-3-small
+        # embedding-dimension: 768   # For sentence-transformers/all-MiniLM-L6-v2
+        # embedding-dimension: 384   # For all-MiniLM-L12-v2
+        
+        # Distance metric for similarity calculation
+        # COSINE: Best for normalized embeddings (most common)
+        # L2: Euclidean distance
+        # IP: Inner product (for unnormalized embeddings)
+        distance-metric: COSINE
+        
+        # Automatically create/update Redis schema on startup
+        initialize-schema: true
+        
+        # Index name prefix
+        index-name: recipe-index
+        
+  # Redis connection settings
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      timeout: 3s
+      
+      # Connection pool configuration
+      lettuce:
+        pool:
+          max-active: 8      # Maximum connections
+          max-idle: 8        # Maximum idle connections
+          min-idle: 2        # Minimum idle connections
+          max-wait: 3s       # Maximum wait time for connection
+        
+        # Shutdown timeout
+        shutdown-timeout: 100ms
+
+# Performance tuning guidelines:
+#
+# For small datasets (< 10K vectors):
+# - Consider FLAT index instead
+# - m: 16, ef-construction: 100, ef-runtime: 10
+#
+# For medium datasets (10K - 100K vectors):
+# - m: 16-32, ef-construction: 200, ef-runtime: 10-20
+#
+# For large datasets (> 100K vectors):
+# - m: 32-48, ef-construction: 300-400, ef-runtime: 20-50
+#
+# For ultra-high accuracy:
+# - m: 64, ef-construction: 500, ef-runtime: 100
+# - Warning: Much slower and more memory
+#
+# Memory usage (approximate):
+# HNSW memory ≈ num_vectors × dimensions × 4 bytes × (1 + M/8)
+# Example: 100K vectors × 1536 dims × 4 bytes × 3 ≈ 1.8 GB
+
+# Query-time EF override (in code):
+# SearchRequest.builder()
+#   .query("pasta recipes")
+#   .topK(10)
+#   .similarityThreshold(0.7)
+#   .efRuntime(50)  // Override ef-runtime for this query
+#   .build()
