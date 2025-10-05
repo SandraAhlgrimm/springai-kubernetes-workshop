@@ -26,7 +26,7 @@ In this module, you'll get hands-on experience with Large Language Models by set
 ### What is Ollama?
 Ollama is a tool that makes it easy to run large language models locally. It handles model downloads, provides a simple API, and manages model lifecycle.
 
-### Installing Ollama
+### Installing Ollama (for non Codespace users)
 
 **macOS:**
 ```bash
