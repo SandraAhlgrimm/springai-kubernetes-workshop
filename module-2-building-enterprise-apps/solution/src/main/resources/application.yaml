@@ -15,7 +15,7 @@ spring:
       chat:
         model: llama3.2
         options.temperature: 0.5
-      embedding.model: llama3.2
+      embedding.model: nomic-embed-text
     vectorstore.redis.initialize-schema: true
 
     # Logging
