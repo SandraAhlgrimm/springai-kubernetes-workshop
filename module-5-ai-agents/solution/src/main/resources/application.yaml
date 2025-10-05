@@ -9,13 +9,13 @@ spring:
       chat:
         enabled: true
         options:
-          model: llama3.2
+          model: qwen3:1.7b
           temperature: 0.7
           num-ctx: 4096
       embedding:
         enabled: true
         options:
-          model: llama3.2
+          model: nomic-embed-text
     
     vectorstore:
       redis:
