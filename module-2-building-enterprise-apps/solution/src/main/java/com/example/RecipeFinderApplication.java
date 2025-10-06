@@ -10,7 +10,7 @@ import org.springframework.core.io.Resource;
 @SpringBootApplication
 public class RecipeFinderApplication {
 
-  @Value("classpath:/prompts/fix-json-response")
+  @Value("classpath:/prompts/recipe-for-ingredients")
     private Resource fixJsonResponsePromptResource;
 
   @Bean
