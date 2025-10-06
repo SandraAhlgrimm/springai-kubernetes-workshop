@@ -1,0 +1,4 @@
+Generate a delicious recipe using the following ingredients: {ingredients}.
+
+Make sure the recipe is practical and uses common cooking techniques.
+Include clear, step-by-step instructions.

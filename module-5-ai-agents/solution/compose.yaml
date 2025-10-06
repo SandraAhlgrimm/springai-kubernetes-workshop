@@ -1,0 +1,115 @@
+services:
+  # Ollama LLM Service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mcp-network
+
+  # Redis Vector Store for RAG
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+      - "8001:8001"  # RedisInsight
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - mcp-network
+
+  # Fridge MCP Server - provides ingredient availability tool
+  fridge-server:
+    build:
+      context: ./fridge-server
+      dockerfile: Dockerfile
+    container_name: fridge-server
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - APP_AVAILABLE_INGREDIENTS_IN_FRIDGE=Bacon,Onions,Eggs,Milk,Butter,Cheese
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mcp-network
+    depends_on:
+      - ollama
+
+  # Favorite Recipes MCP Server - provides RAG-based recipe search tool
+  favorite-recipes-server:
+    build:
+      context: ./favorite-recipes-server
+      dockerfile: Dockerfile
+    container_name: favorite-recipes-server
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - SPRING_AI_OLLAMA_BASE_URL=http://ollama:11434
+      - SPRING_AI_OLLAMA_EMBEDDING_OPTIONS_MODEL=nomic-embed-text
+      - SPRING_AI_VECTORSTORE_REDIS_URI=redis://redis:6379
+      - SPRING_AI_VECTORSTORE_REDIS_INDEX=recipe-index
+      - SPRING_AI_VECTORSTORE_REDIS_PREFIX=recipe:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mcp-network
+    depends_on:
+      - ollama
+      - redis
+
+  # Recipe Finder Client - MCP client with web UI
+  recipe-finder-client:
+    build:
+      context: ./recipe-finder-client
+      dockerfile: Dockerfile
+    container_name: recipe-finder-client
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_AI_OLLAMA_BASE_URL=http://ollama:11434
+      - SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL=qwen3:1.7b
+      - SPRING_AI_OLLAMA_CHAT_OPTIONS_TEMPERATURE=0.7
+      - MCP_FRIDGE_SERVER_URL=http://fridge-server:8081
+      - MCP_FAVORITE_RECIPES_SERVER_URL=http://favorite-recipes-server:8082
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mcp-network
+    depends_on:
+      - ollama
+      - fridge-server
+      - favorite-recipes-server
+
+volumes:
+  ollama-data:
+  redis-data:
+
+networks:
+  mcp-network:
+    driver: bridge

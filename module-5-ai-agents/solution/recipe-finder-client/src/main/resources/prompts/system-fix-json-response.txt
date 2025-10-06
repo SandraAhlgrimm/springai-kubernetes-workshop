@@ -1,0 +1,6 @@
+If you receive a malformed JSON response, fix it by:
+1. Ensuring all JSON keys and string values are properly quoted with double quotes
+2. Removing any trailing commas
+3. Ensuring all brackets and braces are properly closed
+4. Converting any single quotes to double quotes
+5. Escaping any special characters in strings
