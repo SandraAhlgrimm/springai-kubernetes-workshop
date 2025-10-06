@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cookbook
+  name: cookbook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cookbook
+  template:
+    metadata:
+      labels:
+        app: cookbook
+    spec:
+      containers:
+      - image: jpetazzo/cookbook
+        name: cookbook
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: SPRING_DATA_REDIS_HOST
+          value: redis
+        - name: SPRING_AI_VECTORSTORE_REDIS_INITIALIZE_SCHEMA
+          value: "true"
+        - name: SPRING_AI_OLLAMA_BASE_URL
+          value: http://ollama:11434/
+        - name: SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL
+          valueFrom:
+            configMapKeyRef:
+              name: ollama
+              key: model
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cookbook
+  name: cookbook
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: cookbook

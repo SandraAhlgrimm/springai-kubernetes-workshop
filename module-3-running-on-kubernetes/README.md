@@ -11,7 +11,7 @@ Deploy and scale your AI applications on Kubernetes. Learn how to containerize a
 - Implement autoscaling (HPA, VPA, KEDA)
 - Set up monitoring with Prometheus and Grafana
 - Implement health checks and readiness probes
-- Handle persistent storage for vector databases
+- Handle persistent storage for Redis vector stores
 
 ## Topics Covered
 - Docker image creation with Spring Boot
@@ -25,7 +25,7 @@ Deploy and scale your AI applications on Kubernetes. Learn how to containerize a
 - Horizontal Pod Autoscaling (HPA)
 - KEDA for event-driven autoscaling
 - Prometheus and Grafana setup
-- Persistent volumes for vector databases
+- Persistent volumes for Redis vector stores
 - Networking and service mesh considerations
 
 ## Architecture Overview
@@ -35,17 +35,17 @@ Deploy and scale your AI applications on Kubernetes. Learn how to containerize a
 │   Client    │─────▶│  Spring Boot │─────▶│   Message   │
 │             │      │  Application │      │    Queue    │
 └─────────────┘      └──────────────┘      └─────────────┘
-                                                   │
-                                                   ▼
+                            │                     │
+                            ▼                     ▼
                      ┌──────────────┐      ┌─────────────┐
                      │   Ollama     │◀─────│  AI Worker  │
                      │     LLM      │      │    Pods     │
                      └──────────────┘      └─────────────┘
-                             │
-                             ▼
+                            │
+                            ▼
                      ┌──────────────┐
-                     │   Vector DB  │
-                     │  (pgvector)  │
+                     │    Redis     │
+                     │(Vector Store)│
                      └──────────────┘
 ```
 
@@ -125,51 +125,46 @@ spec:
     targetPort: 11434
 ```
 
-### 3. Deploy RabbitMQ for Async Processing
+### 3. Deploy Redis for Vector Storage
 
 ```yaml
-# rabbitmq-deployment.yaml
+# redis-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rabbitmq
+  labels:
+    app: redis
+  name: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: rabbitmq
+      app: redis
   template:
     metadata:
       labels:
-        app: rabbitmq
+        app: redis
     spec:
       containers:
-      - name: rabbitmq
-        image: rabbitmq:3-management
+      - image: redis/redis-stack
+        name: redis
         ports:
-        - containerPort: 5672
-        - containerPort: 15672
-        env:
-        - name: RABBITMQ_DEFAULT_USER
-          value: "guest"
-        - name: RABBITMQ_DEFAULT_PASS
-          valueFrom:
-            secretKeyRef:
-              name: rabbitmq-secret
-              key: password
+        - containerPort: 6379
+          name: redis
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq
+  labels:
+    app: redis
+  name: redis
 spec:
-  selector:
-    app: rabbitmq
   ports:
-  - name: amqp
-    port: 5672
-  - name: management
-    port: 15672
+  - name: redis
+    port: 6379
+    targetPort: redis
+  selector:
+    app: redis
 ```
 
 ### 4. Deploy Your Spring Boot Application
@@ -372,7 +367,7 @@ Requires:
 1. **Resource Limits**: Always set requests and limits
 2. **Health Checks**: Implement proper liveness and readiness probes
 3. **Graceful Shutdown**: Handle SIGTERM properly
-4. **Persistent Storage**: Use PVCs for model storage and vector DB
+4. **Persistent Storage**: Use PVCs for model storage and Redis data
 5. **Secrets Management**: Never hardcode credentials
 6. **Network Policies**: Restrict pod-to-pod communication
 7. **Monitoring**: Track latency, throughput, and errors
@@ -380,7 +375,7 @@ Requires:
 
 ## Hands-On Tasks
 
-In this module, you'll deploy the Recipe Finder application from Module 2 to Kubernetes, including Ollama and Redis.
+In this module, you'll deploy the Recipe Finder application from Module 2 to Kubernetes, including Ollama and Redis Vector Store.
 
 ### Prerequisites
 - Completed Module 2 or use the Module 2 solution
@@ -422,15 +417,18 @@ docker run -p 8080:8080 recipe-finder:latest
 
 ### Task 2: Deploy Redis to Kubernetes
 
-**Goal**: Set up the vector database for RAG.
+**Goal**: Set up Redis for vector storage and RAG.
 
 Create `deployment/kubernetes/redis.yaml`:
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: recipe-finder-redis
+  labels:
+    app: redis
+  name: redis
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: redis
@@ -440,10 +438,10 @@ spec:
         app: redis
     spec:
       containers:
-        - image: redis/redis-stack-server
-          name: workload
-          ports:
-            - containerPort: 6379
+      - image: redis/redis-stack
+        name: redis
+        ports:
+        - containerPort: 6379
 ---
 apiVersion: v1
 kind: Service
@@ -787,7 +785,7 @@ kubectl delete all -l app=recipe-finder-ollama
 You've completed this module when:
 - ✅ Recipe Finder runs in Kubernetes
 - ✅ Ollama serves LLM requests
-- ✅ Redis stores vector embeddings
+- ✅ Redis Vector Store is properly configured
 - ✅ Health probes work correctly
 - ✅ You can access the UI from your browser
 - ✅ HPA scales pods based on load
@@ -821,7 +819,8 @@ Complete Kubernetes manifests are in [`solution/deployment/kubernetes/`](./solut
    v                  v
 ┌──────────────┐  ┌────────────────────┐
 │ Redis        │  │ Ollama LLM         │
-│  ClusterIP   │  │  ClusterIP         │
+│ Vector Store │  │  ClusterIP         │
+│  ClusterIP   │  │                    │
 └──────────────┘  └────────────────────┘
 ```
 
