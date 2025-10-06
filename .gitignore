@@ -24,14 +24,9 @@ hs_err_pid*
 replay_pid*
 
 # Gradle
-.gradle/
+.gradle
 build/
-gradle/
-gradlew
-gradlew.bat
-!gradle-wrapper.jar
-*.bin
-*.lock
+!gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/
@@ -49,3 +44,5 @@ Thumbs.db
 
 # Application temp files
 /tmp/
+
+
