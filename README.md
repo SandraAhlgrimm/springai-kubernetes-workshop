@@ -31,6 +31,10 @@ In this tutorial, you'll learn how to:
 
 > **Note:** While the example application uses Java, all concepts around LLM deployment and scaling are fully **language-agnostic**, making this workshop valuable for developers of all backgrounds.
 
+## Slides
+
+Slides are available [here.](https://docs.google.com/presentation/d/1w5qGxDqA7-vvHPQmMNt2KznCnPnuo9Wl-ChJLKN88zI/edit?usp=sharing)
+
 ## Workshop Modules
 
 ### [Module 0: (Generative) AI Fundamentals](./module-0-ai-fundamentals/README.md)
@@ -60,7 +64,7 @@ This workshop is designed to work seamlessly with GitHub Codespaces. Simply clic
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/SandraAhlgrimm/springai-kubernetes-workshop)
 
 The Codespace includes:
-- ✅ Java 25 with Maven and Gradle
+- ✅ Java 25 with Maven and Gradle 9
 - ✅ Docker-in-Docker support
 - ✅ Kubernetes (kubectl, Helm, Minikube)
 - ✅ Ollama pre-installed for running LLMs
