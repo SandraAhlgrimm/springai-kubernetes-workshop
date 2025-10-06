@@ -55,11 +55,11 @@ ollama run qwen3:1.7b --hidethinking
 
 Models expose parameters that shape how they respond. You can tune these to trade off precision, creativity, determinism, and length. The examples below highlight some of the most commonly used options.
 
-*Temperature* adjusts the probability distribution of tokens, with higher values increasing creativity and less predictable outputs
-*Top-k* restricts selection to the k most probable tokens, ensuring coherence 
-*Top-p* (nucleus sampling) sets a cumulative probability threshold to filter out less likely tokens, creating a dynamic vocabulary for the model to choose from
-*Max tokens* caps the length of the output
-*Seed* is a starting number that, when fixed, makes the entire sampling process reproducible, yielding the same output for identical inputs and parameters
+**Temperature** adjusts the probability distribution of tokens, with higher values increasing creativity and less predictable outputs  
+**Top-k** restricts selection to the k most probable tokens, ensuring coherence  
+**Top-p** (nucleus sampling) sets a cumulative probability threshold to filter out less likely tokens, creating a dynamic vocabulary for the model to choose from  
+**Max tokens** caps the length of the output  
+**Seed** is a starting number that, when fixed, makes the entire sampling process reproducible, yielding the same output for identical inputs and parameters
 
 You can view the default model parameter values in Ollama using the `ollama show` command.
 ```bash
@@ -99,6 +99,7 @@ Quantization       Q4_K_M
 This information helps you understand how large the model is, how much text it can process at once, and how it’s optimized.
 
 **Key Performance Factors**
+
 *Model Size and Parameters*: Larger models (e.g., 70B) are more capable but slower and memory-intensive. Smaller ones (e.g., 2B–7B) respond faster. Qwen3 was chosen in our example because of its small size (2B version), but it’s also available in larger variants, such as the 235B model.
 
 *Quantization*: Reduces precision (e.g., 4-bit or 5-bit) to lower memory use and improve speed, usually with minimal quality loss.
