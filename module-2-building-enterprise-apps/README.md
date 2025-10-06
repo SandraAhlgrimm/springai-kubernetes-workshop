@@ -57,7 +57,7 @@ In this step, you’ll use Spring Initializr in your IDE to create a new Spring 
 - Add dependencies: Spring Web, Spring Boot Actuator, Spring AI Ollama.
 
 In GitHub Codespaces / VS Code:  
-Press `Ctrl + Shift + P` to open command palette.  
+Press `Ctrl + Shift + P` or `F1` to open command palette.  
 Type `Spring Initializr` to start generating a Maven or Gradle project.
 **Save it to the `recipe-finder` folder in the root of your cloned repository.**
 
