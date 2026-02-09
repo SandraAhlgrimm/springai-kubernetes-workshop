@@ -77,9 +77,8 @@ Parameters
 ```
 
 For example, a temperature value of 0.8 produces more creative and varied responses, while lower values such as 0.1–0.3 make outputs more focused and deterministic.
-```bash
-ollama run qwen3:1.7b "Provide a recipe that includes the ingredient waffles" --hidethinking --temperature 0.1
-```
+
+**Note:** The Ollama CLI does not support setting temperature and other model parameters directly via command-line flags. To customize these parameters, you need to use the Ollama REST API (see the "Interacting with the Ollama REST API" section below) or create a custom Modelfile.
 
 ## Balancing Speed, Quality, and Resources
 
@@ -133,6 +132,20 @@ curl http://localhost:11434/api/generate \
     "prompt": "Provide a recipe that includes the ingredient waffles",
     "stream": false,
     "think": false
+  }'
+```
+
+You can customize model parameters such as temperature by including them in the `options` field:
+```bash
+curl http://localhost:11434/api/generate \
+  -d '{
+    "model": "qwen3:1.7b",
+    "prompt": "Provide a recipe that includes the ingredient waffles",
+    "stream": false,
+    "think": false,
+    "options": {
+      "temperature": 0.1
+    }
   }'
 ```
 
