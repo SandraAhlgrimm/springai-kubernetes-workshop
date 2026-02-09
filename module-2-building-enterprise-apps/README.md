@@ -80,14 +80,67 @@ curl https://start.spring.io/starter.zip -d javaVersion=25 -d groupId=com.exampl
 curl http://localhost:8080/api/v1/recipes?ingredients=waffles
 ```
 
+## Step-by-step: Build the Recipe API
 
+1. **Create model** `src/main/java/com/example/recipe/Recipe.java`
+   ```java
+   package com.example.recipe;
+   import java.util.List;
+   public record Recipe(String name, String description, List<String> ingredients, List<String> instructions, String imageUrl) {}
+   ```
 
+2. **Add prompt** `src/main/resources/prompts/recipe-for-ingredients`
+   ```text
+   Provide a JSON recipe for the following ingredients: {ingredients}
+   ```
 
+3. **Inject Spring AI ChatClient** `RecipeService.java`
+   ```java
+   @Service
+   class RecipeService {
+       private final ChatClient chatClient;
+       @Value("classpath:/prompts/recipe-for-ingredients")
+       private Resource recipeForIngredientsPromptResource;
 
+       RecipeService(ChatClient chatClient) { this.chatClient = chatClient; }
 
+       Recipe fetchRecipeFor(List<String> ingredients) {
+           return chatClient.prompt()
+               .user(us -> us.text(recipeForIngredientsPromptResource)
+                             .param("ingredients", String.join(",", ingredients)))
+               .call()
+               .entity(Recipe.class);
+       }
+   }
+   ```
 
+4. **Expose REST endpoint** `RecipeController.java`
+   ```java
+   @RestController
+   class RecipeController {
+       private final RecipeService recipeService;
+       RecipeController(RecipeService recipeService) { this.recipeService = recipeService; }
 
+       @GetMapping("/api/v1/recipes")
+       public ResponseEntity<Recipe> fetchRecipeFor(@RequestParam List<String> ingredients) {
+           return ResponseEntity.ok(recipeService.fetchRecipeFor(ingredients));
+       }
+   }
+   ```
 
+5. **Run & test**
+   ```bash
+   ./gradlew bootRun
+   curl "http://localhost:8080/api/v1/recipes?ingredients=waffles"
+   ```
+
+6. **Add tests (optional)**
+   - `RecipeServiceTest` using a mocked `ChatClient`
+   - `RecipeControllerTest` using `@WebMvcTest`
+
+```bash
+./gradlew test
+```
 
 
 
