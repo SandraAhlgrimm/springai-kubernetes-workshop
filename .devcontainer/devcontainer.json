@@ -1,6 +1,8 @@
 {
 	"name": "Spring AI + Kubernetes Workshop",
-	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
 
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
